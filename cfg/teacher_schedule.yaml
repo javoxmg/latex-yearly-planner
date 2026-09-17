@@ -28,9 +28,28 @@ layout:
 
   colors:
     classfill: gray!15     # relleno de los bloques de clase
+    breakfill: gray!40     # relleno del bloque de recreo
 
 schedule:
   enabled: true
+
+  # Días con jornada en el centro (1 = lunes ... 5 = viernes). Solo estos
+  # días muestran las cajas de los periodos; el resto (fin de semana) sale
+  # con la rejilla vacía.
+  days: [1, 2, 3, 4, 5]
+
+  # Marco horario de la jornada, igual todos los días: los 6 periodos
+  # lectivos y el recreo. Cada periodo sin clase se dibuja como una caja
+  # vacía (hora de permanencia); el recreo va marcado con `break: true`.
+  periods:
+    - { start: "08:30", end: "09:20" }
+    - { start: "09:25", end: "10:15" }
+    - { start: "10:20", end: "11:10" }
+    - { start: "11:10", end: "11:35", name: "RECREO", break: true }
+    - { start: "11:35", end: "12:25" }
+    - { start: "12:30", end: "13:20" }
+    - { start: "13:25", end: "14:15" }
+
   classes:
     # Lunes
     - { day: 1, start: "08:30", end: "09:20", name: "CdM · 3ºA/D",    group: "Conocimiento de las Matemáticas - 03A, 03D" }

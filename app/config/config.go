@@ -68,6 +68,8 @@ type Colors struct {
 	// ClassFill is the fill color of the class blocks drawn on the daily
 	// schedule when Schedule.Enabled is set (e.g. "gray!15").
 	ClassFill string
+	// BreakFill is the fill color of the break (recess) blocks.
+	BreakFill string
 }
 
 type Layout struct {
@@ -164,6 +166,10 @@ func New(pathConfigs ...string) (Config, error) {
 
 	if cfg.Layout.Colors.ClassFill == "" {
 		cfg.Layout.Colors.ClassFill = "gray!15"
+	}
+
+	if cfg.Layout.Colors.BreakFill == "" {
+		cfg.Layout.Colors.BreakFill = "gray!40"
 	}
 
 	return cfg, nil

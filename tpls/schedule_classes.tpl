@@ -1,11 +1,16 @@
 {{- /*
-  Daily schedule column with the teacher's class timetable.
+  Daily schedule column with the teacher's timetable.
 
   The whole column is one TikZ picture whose y unit is one hour
-  (\myLenDailyHourHeight, pointing downwards), so a class from 08:30 to
+  (\myLenDailyHourHeight, pointing downwards), so a slot from 08:30 to
   09:20 on a grid starting at 08:00 is simply a rectangle from y=0.5 to
   y=1.333. Hour labels sit in a left gutter (\myLenScheduleGutter) so the
-  class blocks never cover them.
+  boxes never cover them.
+
+  Three kinds of box (see config.Schedule.ForWeekday):
+    class  shaded, group name in bold + time
+    free   outlined only (a period without a lesson), time in gray
+    break  shaded darker, name centred (e.g. RECREO)
 */ -}}
 {{- $bottom := .Cfg.Layout.Numbers.DailyBottomHour -}}
 {{- $top := .Cfg.Layout.Numbers.DailyTopHour -}}
@@ -19,8 +24,16 @@
   \draw[color=\myColorGray] (0,{{incr $i}}) -- (\myLenTriCol,{{incr $i}});
   \node[anchor=north west, inner sep=1pt] at (0,{{$i}}) {\small {{- $hour.FormatHour $.Cfg.AMPMTime -}} };
 {{- end}}
-{{- range $c := .Cfg.Schedule.ForWeekday .Day.Time.Weekday $bottom $top}}
-  \filldraw[fill=\myColorClassFill, draw=\myColorGray] (\myLenScheduleGutter,{{printf "%.4f" $c.Top}}) rectangle (\myLenTriCol,{{printf "%.4f" $c.Bottom}});
-  \node[anchor=north west, inner sep=2pt, align=left, text width=\dimexpr\myLenTriCol-\myLenScheduleGutter-4pt\relax] at (\myLenScheduleGutter,{{printf "%.4f" $c.Top}}) {\small\textbf{ {{- $c.Name -}} }\\[-1pt]\scriptsize\textcolor{\myColorGray}{ {{- $c.Start}}--{{$c.End -}} }};
+{{- range $b := .Cfg.Schedule.ForWeekday .Day.Time.Weekday $bottom $top}}
+{{- if eq $b.Kind "class"}}
+  \filldraw[fill=\myColorClassFill, draw=\myColorGray] (\myLenScheduleGutter,{{printf "%.4f" $b.Top}}) rectangle (\myLenTriCol,{{printf "%.4f" $b.Bottom}});
+  \node[anchor=north west, inner sep=2pt, align=left, text width=\dimexpr\myLenTriCol-\myLenScheduleGutter-4pt\relax] at (\myLenScheduleGutter,{{printf "%.4f" $b.Top}}) {\small\textbf{ {{- $b.Name -}} }\\[-1pt]\scriptsize\textcolor{\myColorGray}{ {{- $b.Start}}--{{$b.End -}} }};
+{{- else if eq $b.Kind "break"}}
+  \filldraw[fill=\myColorBreakFill, draw=\myColorGray] (\myLenScheduleGutter,{{printf "%.4f" $b.Top}}) rectangle (\myLenTriCol,{{printf "%.4f" $b.Bottom}});
+  \node[anchor=center, inner sep=0pt] at ({0.5*(\myLenScheduleGutter+\myLenTriCol)},{{printf "%.4f" $b.Mid}}) {\scriptsize\textcolor{\myColorGray}{\textbf{ {{- $b.Name -}} }\enspace {{$b.Start}}--{{$b.End}}}};
+{{- else}}
+  \filldraw[fill=white, draw=\myColorGray] (\myLenScheduleGutter,{{printf "%.4f" $b.Top}}) rectangle (\myLenTriCol,{{printf "%.4f" $b.Bottom}});
+  \node[anchor=north west, inner sep=2pt] at (\myLenScheduleGutter,{{printf "%.4f" $b.Top}}) {\scriptsize\textcolor{\myColorGray}{ {{- if $b.Name}}\textbf{ {{- $b.Name -}} }\enspace{{end -}} {{$b.Start}}--{{$b.End -}} }};
+{{- end}}
 {{- end}}
 \end{tikzpicture}\par

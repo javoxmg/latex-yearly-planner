@@ -1,6 +1,6 @@
 {%
 {{ if not .Large -}} \renewcommand{\arraystretch}{\myNumArrayStretch}% {{- end}}
-\setlength{\tabcolsep}{\myLenTabColSep}%
+{{ if .Large -}} \setlength{\tabcolsep}{0pt}% {{- else -}} \setlength{\tabcolsep}{\myLenTabColSep}% {{- end}}
 %
 {{ .Month.DefineTable .TableType .Large }}
   {{ .Month.MaybeName .Large }}

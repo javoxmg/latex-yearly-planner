@@ -96,7 +96,9 @@ func (m *Month) DefineTable(typ interface{}, large interface{}) string {
 		weekAlign := "Y|"
 		days := "Y"
 		if full {
-			weekAlign = `|l!{\vrule width \myLenLineThicknessThick}`
+			// tabcolsep is 0 in the large table (so \cellcolor doesn't
+			// overhang the rules); pad the week column explicitly.
+			weekAlign = `|@{\hspace{\myLenTabColSep}}l@{\hspace{\myLenTabColSep}}!{\vrule width \myLenLineThicknessThick}`
 			days = "@{}X@{}|"
 		}
 

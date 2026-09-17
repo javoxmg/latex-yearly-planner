@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/kudrykv/latex-yearly-planner/app/components/cal"
 	"github.com/kudrykv/latex-yearly-planner/app/components/page"
 	"github.com/kudrykv/latex-yearly-planner/app/compose"
 	"github.com/kudrykv/latex-yearly-planner/app/config"
@@ -50,6 +51,20 @@ func action(c *cli.Context) error {
 	if cfg, err = config.New(pathConfigs...); err != nil {
 		return fmt.Errorf("config new: %w", err)
 	}
+
+	byDay, err := cfg.Events.ByDay()
+	if err != nil {
+		return fmt.Errorf("events: %w", err)
+	}
+
+	dayEvents := make(map[string][]cal.DayEvent, len(byDay))
+	for key, evs := range byDay {
+		for _, ev := range evs {
+			dayEvents[key] = append(dayEvents[key], cal.DayEvent{Name: ev.Name, Short: ev.Short, Holiday: ev.Holiday, Note: ev.Note})
+		}
+	}
+
+	cal.SetDayEvents(dayEvents)
 
 	wr := &bytes.Buffer{}
 

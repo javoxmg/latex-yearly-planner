@@ -67,6 +67,7 @@
 \newcommand{\myColorLightGray}{ {{- .Cfg.Layout.Colors.LightGray -}} }
 \newcommand{\myColorClassFill}{ {{- .Cfg.Layout.Colors.ClassFill -}} }
 \newcommand{\myColorBreakFill}{ {{- .Cfg.Layout.Colors.BreakFill -}} }
+\newcommand{\myColorHolidayFill}{ {{- .Cfg.Layout.Colors.HolidayFill -}} }
 
 \newcommand{\myLinePlain}{\hrule width \linewidth height \myLenLineThicknessDefault}
 \newcommand{\myLineThick}{\hrule width \linewidth height \myLenLineThicknessThick}

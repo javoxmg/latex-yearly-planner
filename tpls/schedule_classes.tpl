@@ -17,6 +17,13 @@
 {{- $hours := .Day.Hours $bottom $top -}}
 {{- $n := len $hours -}}
 \myUnderline{Schedule\textcolor{white}{g}}\vskip-\myLenLineThicknessDefault
+{{- if .Day.HasEvents}}
+{{- if .Day.IsHoliday}}
+\noindent{\setlength{\fboxsep}{2pt}\colorbox{\myColorHolidayFill}{\parbox{\dimexpr\myLenTriCol-2\fboxsep\relax}{\centering\small\textbf{ {{- .Day.EventsLong -}} }}}}\par\vskip1pt
+{{- else}}
+\noindent\parbox{\myLenTriCol}{\centering\small\textbf{ {{- .Day.EventsLong -}} }}\par\vskip1pt
+{{- end}}
+{{- end}}
 \noindent\begin{tikzpicture}[x=1mm, y={(0,-\myLenDailyHourHeight)}, inner sep=0pt, outer sep=0pt, line width=\myLenLineThicknessDefault]
   \useasboundingbox (0,0) rectangle (\myLenTriCol,{{$n}});
 {{- range $i, $hour := $hours}}
@@ -24,7 +31,7 @@
   \draw[color=\myColorGray] (0,{{incr $i}}) -- (\myLenTriCol,{{incr $i}});
   \node[anchor=north west, inner sep=1pt] at (0,{{$i}}) {\small {{- $hour.FormatHour $.Cfg.AMPMTime -}} };
 {{- end}}
-{{- range $b := .Cfg.Schedule.ForWeekday .Day.Time.Weekday $bottom $top}}
+{{- range $b := .Cfg.Schedule.ForDate .Day.Time $bottom $top .Day.IsHoliday}}
 {{- if eq $b.Kind "class"}}
   \filldraw[fill=\myColorClassFill, draw=\myColorGray] (\myLenScheduleGutter,{{printf "%.4f" $b.Top}}) rectangle (\myLenTriCol,{{printf "%.4f" $b.Bottom}});
   \node[anchor=north west, inner sep=2pt, align=left, text width=\dimexpr\myLenTriCol-\myLenScheduleGutter-4pt\relax] at (\myLenScheduleGutter,{{printf "%.4f" $b.Top}}) {\small\textbf{ {{- $b.Name -}} }\\[-1pt]\scriptsize\textcolor{\myColorGray}{ {{- $b.Start}}--{{$b.End -}} }};

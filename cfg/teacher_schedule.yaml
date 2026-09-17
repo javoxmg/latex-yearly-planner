@@ -50,15 +50,18 @@ schedule:
     - { start: "12:30", end: "13:20" }
     - { start: "13:25", end: "14:15" }
 
+  # `until` (opcional): último día de clase de ese grupo, si es distinto
+  # del fin de curso general (schedule.to en teacher_calendar_*.yaml).
+  # 2º Bachillerato acaba el 21 de mayo y 1º Bachillerato el 17 de junio.
   classes:
     # Lunes
     - { day: 1, start: "08:30", end: "09:20", name: "CdM · 3ºA/D",    group: "Conocimiento de las Matemáticas - 03A, 03D" }
-    - { day: 1, start: "09:25", end: "10:15", name: "Mat II · 2ºBCB", group: "Matemáticas II - 2BCB" }
-    - { day: 1, start: "11:35", end: "12:25", name: "MACS I · 1ºBHS", group: "Matemáticas Aplicadas a las Ciencias Sociales I - 1BHS" }
+    - { day: 1, start: "09:25", end: "10:15", name: "Mat II · 2ºBCB", group: "Matemáticas II - 2BCB", until: "2027-05-21" }
+    - { day: 1, start: "11:35", end: "12:25", name: "MACS I · 1ºBHS", group: "Matemáticas Aplicadas a las Ciencias Sociales I - 1BHS", until: "2027-06-17" }
     # Martes
     - { day: 2, start: "08:30", end: "09:20", name: "CdM · 2ºB/D",    group: "Conocimiento de las Matemáticas - 02B, 02D" }
-    - { day: 2, start: "10:20", end: "11:10", name: "MACS I · 1ºBHS", group: "Matemáticas Aplicadas a las Ciencias Sociales I - 1BHS" }
-    - { day: 2, start: "11:35", end: "12:25", name: "Mat II · 2ºBCB", group: "Matemáticas II - 2BCB" }
+    - { day: 2, start: "10:20", end: "11:10", name: "MACS I · 1ºBHS", group: "Matemáticas Aplicadas a las Ciencias Sociales I - 1BHS", until: "2027-06-17" }
+    - { day: 2, start: "11:35", end: "12:25", name: "Mat II · 2ºBCB", group: "Matemáticas II - 2BCB", until: "2027-05-21" }
     - { day: 2, start: "12:30", end: "13:20", name: "Mat · 3ºA/B",    group: "Matemáticas - 03A, 03B" }
     # Miércoles
     - { day: 3, start: "08:30", end: "09:20", name: "CdM · 2ºB/D",    group: "Conocimiento de las Matemáticas - 02B, 02D" }
@@ -66,9 +69,9 @@ schedule:
     - { day: 3, start: "12:30", end: "13:20", name: "Mat · 3ºA/B",    group: "Matemáticas - 03A, 03B" }
     # Jueves
     - { day: 4, start: "10:20", end: "11:10", name: "Mat · 3ºA/B",    group: "Matemáticas - 03A, 03B" }
-    - { day: 4, start: "11:35", end: "12:25", name: "MACS I · 1ºBHS", group: "Matemáticas Aplicadas a las Ciencias Sociales I - 1BHS" }
-    - { day: 4, start: "12:30", end: "13:20", name: "Mat II · 2ºBCB", group: "Matemáticas II - 2BCB" }
+    - { day: 4, start: "11:35", end: "12:25", name: "MACS I · 1ºBHS", group: "Matemáticas Aplicadas a las Ciencias Sociales I - 1BHS", until: "2027-06-17" }
+    - { day: 4, start: "12:30", end: "13:20", name: "Mat II · 2ºBCB", group: "Matemáticas II - 2BCB", until: "2027-05-21" }
     # Viernes
-    - { day: 5, start: "09:25", end: "10:15", name: "Mat II · 2ºBCB", group: "Matemáticas II - 2BCB" }
-    - { day: 5, start: "10:20", end: "11:10", name: "MACS I · 1ºBHS", group: "Matemáticas Aplicadas a las Ciencias Sociales I - 1BHS" }
+    - { day: 5, start: "09:25", end: "10:15", name: "Mat II · 2ºBCB", group: "Matemáticas II - 2BCB", until: "2027-05-21" }
+    - { day: 5, start: "10:20", end: "11:10", name: "MACS I · 1ºBHS", group: "Matemáticas Aplicadas a las Ciencias Sociales I - 1BHS", until: "2027-06-17" }
     - { day: 5, start: "11:35", end: "12:25", name: "Mat · 3ºA/B",    group: "Matemáticas - 03A, 03B" }

@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"io/ioutil"
+	"strconv"
 	"strings"
 	"time"
 
@@ -30,6 +31,14 @@ type Config struct {
 	// Schedule is the teacher's weekly class timetable, drawn on the
 	// daily pages when enabled (see cfg/teacher_schedule.yaml).
 	Schedule Schedule
+
+	// Events is the school calendar: holidays, vacations and notable
+	// dates, marked on every page (see cfg/teacher_calendar_*.yaml).
+	Events Events
+
+	// TitlePrefix is printed above the year on the title page, e.g.
+	// "Curso" to get "Curso 2026-2027". Empty for just the year.
+	TitlePrefix string
 }
 
 type Debug struct {
@@ -70,6 +79,8 @@ type Colors struct {
 	ClassFill string
 	// BreakFill is the fill color of the break (recess) blocks.
 	BreakFill string
+	// HolidayFill is the background of holiday day cells in the calendars.
+	HolidayFill string
 }
 
 type Layout struct {
@@ -118,6 +129,18 @@ type Margin struct {
 	Bottom string `env:"PLANNER_LAYOUT_PAPER_MARGIN_BOTTOM"`
 	Left   string `env:"PLANNER_LAYOUT_PAPER_MARGIN_LEFT"`
 	Right  string `env:"PLANNER_LAYOUT_PAPER_MARGIN_RIGHT"`
+}
+
+// RangeLabel is the label of the generated range: the calendar year for
+// a January-December planner ("2026"), or both years when the range
+// spans two calendar years ("2026-2027").
+func (c Config) RangeLabel() string {
+	endYear := c.Year + (int(c.StartMonth)-1+c.NumMonths-1)/12
+	if endYear == c.Year {
+		return strconv.Itoa(c.Year)
+	}
+
+	return strconv.Itoa(c.Year) + "-" + strconv.Itoa(endYear)
 }
 
 func New(pathConfigs ...string) (Config, error) {
@@ -170,6 +193,10 @@ func New(pathConfigs ...string) (Config, error) {
 
 	if cfg.Layout.Colors.BreakFill == "" {
 		cfg.Layout.Colors.BreakFill = "gray!40"
+	}
+
+	if cfg.Layout.Colors.HolidayFill == "" {
+		cfg.Layout.Colors.HolidayFill = "gray!25"
 	}
 
 	return cfg, nil

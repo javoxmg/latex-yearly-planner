@@ -24,7 +24,15 @@ func (d Day) Day(today, large interface{}) string {
 	day := strconv.Itoa(d.Time.Day())
 
 	if larg, _ := large.(bool); larg {
-		return `\hyperlink{` + d.ref() + `}{\begin{tabular}{@{}p{5mm}@{}|}\hfil{}` + day + `\\ \hline\end{tabular}}`
+		cell := `\hyperlink{` + d.ref() + `}{\begin{tabular}{@{}p{5mm}@{}|}\hfil{}` + day + `\\ \hline\end{tabular}}`
+
+		if d.HasEvents() {
+			// Label next to the day number, e.g. "Navidad"; the cell is
+			// shaded (holiday) or the number boxed (info) by markCell.
+			cell += `\hspace{2pt}{\scriptsize\textcolor{\myColorGray}{` + d.EventsShort() + `}}`
+		}
+
+		return d.markCell(cell)
 	}
 
 	if td, ok := today.(Day); ok {
@@ -33,7 +41,7 @@ func (d Day) Day(today, large interface{}) string {
 		}
 	}
 
-	return hyper.Link(d.ref(), day)
+	return d.markCell(hyper.Link(d.ref(), day))
 }
 
 func (d Day) ref(prefix ...string) string {
@@ -51,7 +59,13 @@ func (d Day) Add(days int) Day {
 }
 
 func (d Day) WeekLink() string {
-	return hyper.Link(d.ref(), strconv.Itoa(d.Time.Day())+", "+d.Time.Weekday().String())
+	link := hyper.Link(d.ref(), strconv.Itoa(d.Time.Day())+", "+d.Time.Weekday().String())
+
+	if d.HasEvents() {
+		link += `\hfill{\scriptsize\textcolor{\myColorGray}{` + d.EventsShort() + `}}`
+	}
+
+	return link
 }
 
 func (d Day) Breadcrumb(prefix string, leaf string, shorten bool) string {

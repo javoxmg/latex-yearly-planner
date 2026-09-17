@@ -102,6 +102,17 @@ func (y Year) SideMonths(sel ...time.Month) []header.CellItem {
 	return out
 }
 
+// Label is the visible name of the range: "2026" for a calendar year,
+// "2026-2027" when the range spans two calendar years.
+func (y Year) Label() string {
+	endYear, _ := monthAt(y.NumMonths - 1)
+	if endYear == y.Number {
+		return strconv.Itoa(y.Number)
+	}
+
+	return strconv.Itoa(y.Number) + "-" + strconv.Itoa(endYear)
+}
+
 func (y Year) HeadingMOS() string {
-	return tex.ResizeBoxW(`\myLenHeaderResizeBox`, tex.Hypertarget("Calendar", strconv.Itoa(y.Number)))
+	return tex.ResizeBoxW(`\myLenHeaderResizeBox`, tex.Hypertarget("Calendar", y.Label()))
 }

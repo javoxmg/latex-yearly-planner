@@ -18,6 +18,12 @@ import (
 //   - a "break" block for periods flagged as Break (e.g. the recess).
 type Schedule struct {
 	Enabled bool
+	// From and To ("YYYY-MM-DD", inclusive) bound the lesson period: no
+	// class blocks are drawn outside it (e.g. before the first day of
+	// term). Period boxes are still drawn on school days, because the
+	// teacher is at school. Either may be empty.
+	From string
+	To   string
 	// Days are the weekdays that get the period boxes (default Mon-Fri).
 	// Weekdays not listed here only show classes explicitly assigned to
 	// them, which normally means an empty grid (weekends, holidays).
@@ -54,6 +60,11 @@ type Class struct {
 	// Group is the full group name (optional; kept for later linking the
 	// block to the group's student roster page).
 	Group string
+	// From and Until ("YYYY-MM-DD", inclusive) override Schedule.From/To
+	// for this class, e.g. a 2º Bachillerato group whose lessons end in
+	// May while the rest of the school runs until June.
+	From  string
+	Until string
 }
 
 // Block kinds, as seen by the template.
@@ -83,12 +94,19 @@ func (b ScheduleBlock) Mid() float64 {
 	return (b.Top + b.Bottom) / 2
 }
 
-// ForWeekday returns the blocks to draw on the given weekday, sorted by
-// start time and positioned relative to bottomHour: every class of that
-// day, plus (on school days) one free/break box per period that no class
-// occupies. Blocks entirely outside [bottomHour, topHour+1) are dropped;
-// partial overlaps are clipped so a block never leaves the grid.
-func (s Schedule) ForWeekday(wd time.Weekday, bottomHour, topHour int) ([]ScheduleBlock, error) {
+// ForDate returns the blocks to draw on the daily page of date t, sorted
+// by start time and positioned relative to bottomHour. On a holiday
+// nothing is drawn. Otherwise: every class of that weekday whose date
+// range includes t, plus (on school days) one free/break box per period
+// that no class occupies. Blocks entirely outside [bottomHour, topHour+1)
+// are dropped; partial overlaps are clipped so a block never leaves the
+// grid.
+func (s Schedule) ForDate(t time.Time, bottomHour, topHour int, holiday bool) ([]ScheduleBlock, error) {
+	if holiday {
+		return nil, nil
+	}
+
+	wd := t.Weekday()
 	gridTop := float64(topHour + 1 - bottomHour)
 	blocks := make([]ScheduleBlock, 0, len(s.Periods)+len(s.Classes))
 
@@ -127,10 +145,23 @@ func (s Schedule) ForWeekday(wd time.Weekday, bottomHour, topHour int) ([]Schedu
 		return nil
 	}
 
+	active := make([]Class, 0, len(s.Classes))
+
 	for _, c := range s.Classes {
 		if c.Day != wd {
 			continue
 		}
+
+		ok, err := s.classActive(c, t)
+		if err != nil {
+			return nil, err
+		}
+
+		if !ok {
+			continue
+		}
+
+		active = append(active, c)
 
 		if err := add(BlockClass, c.Name, c.Group, c.Start, c.End); err != nil {
 			return nil, err
@@ -144,7 +175,7 @@ func (s Schedule) ForWeekday(wd time.Weekday, bottomHour, topHour int) ([]Schedu
 				kind = BlockBreak
 			}
 
-			if kind == BlockFree && s.periodTaken(wd, p) {
+			if kind == BlockFree && periodTaken(active, p) {
 				continue
 			}
 
@@ -157,6 +188,45 @@ func (s Schedule) ForWeekday(wd time.Weekday, bottomHour, topHour int) ([]Schedu
 	sort.SliceStable(blocks, func(i, j int) bool { return blocks[i].Top < blocks[j].Top })
 
 	return blocks, nil
+}
+
+// classActive reports whether class c is taught on date t: t must lie
+// within the class's own From/Until when set, else within the
+// schedule's From/To when set.
+func (s Schedule) classActive(c Class, t time.Time) (bool, error) {
+	from, until := s.From, s.To
+
+	if c.From != "" {
+		from = c.From
+	}
+
+	if c.Until != "" {
+		until = c.Until
+	}
+
+	if from != "" {
+		f, err := parseDate(from)
+		if err != nil {
+			return false, fmt.Errorf("class %q from: %w", c.Name, err)
+		}
+
+		if t.Before(f) {
+			return false, nil
+		}
+	}
+
+	if until != "" {
+		u, err := parseDate(until)
+		if err != nil {
+			return false, fmt.Errorf("class %q until: %w", c.Name, err)
+		}
+
+		if t.After(u) {
+			return false, nil
+		}
+	}
+
+	return true, nil
 }
 
 // isSchoolDay reports whether wd gets the period boxes: the days listed
@@ -175,8 +245,8 @@ func (s Schedule) isSchoolDay(wd time.Weekday) bool {
 	return false
 }
 
-// periodTaken reports whether some class on wd overlaps the period.
-func (s Schedule) periodTaken(wd time.Weekday, p Period) bool {
+// periodTaken reports whether some class in the list overlaps the period.
+func periodTaken(classes []Class, p Period) bool {
 	pFrom, err1 := parseHHMM(p.Start)
 	pTo, err2 := parseHHMM(p.End)
 
@@ -184,11 +254,7 @@ func (s Schedule) periodTaken(wd time.Weekday, p Period) bool {
 		return false
 	}
 
-	for _, c := range s.Classes {
-		if c.Day != wd {
-			continue
-		}
-
+	for _, c := range classes {
 		cFrom, err1 := parseHHMM(c.Start)
 		cTo, err2 := parseHHMM(c.End)
 

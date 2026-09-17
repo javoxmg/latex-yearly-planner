@@ -1,0 +1,63 @@
+# Teacher Edition - Calendario escolar 2026-2027 (FASE 3)
+#
+# Fuente: Calendario escolar 2026-2027 de la Junta de Castilla y León
+# (ORDEN EDU/478/2026, BOCyL 28/05/2026)
+# https://www.educa.jcyl.es/es/informacion/calendario-escolar-2026-2027
+#
+# Solo se incluyen las fechas que afectan a ESO y Bachillerato (no FP,
+# primaria, idiomas, etc.).
+#
+# Cada entrada:
+#   from / to : fechas YYYY-MM-DD (to opcional; ambas incluidas)
+#   name      : texto completo (se imprime en la página diaria)
+#   short     : etiqueta corta para las páginas mensual y semanal
+#   kind      : holiday = no lectivo (celda sombreada, sin clases ni
+#                         periodos en la página diaria)
+#               info    = fecha señalada (número recuadrado; día normal)
+#               note    = como info, pero sin recuadro en los calendarios
+#                         pequeños (anual/trimestral); solo etiqueta en
+#                         las páginas mensual, semanal y diaria
+#
+# Los festivos LOCALES (2 al año, los fija cada ayuntamiento) no están en
+# el calendario autonómico: añádelos aquí a mano cuando los conozcas.
+
+titleprefix: "Curso"
+
+# Periodo lectivo de ESO y Bachillerato: fuera de estas fechas no se
+# dibujan clases (pero sí las cajas de los periodos, que son horas de
+# permanencia en el centro). Los grupos con fin de curso distinto lo
+# indican con `until` en su clase (ver teacher_schedule.yaml).
+schedule:
+  from: "2026-09-15"
+  to: "2027-06-24"
+
+events:
+  # --- Inicio de curso ---
+  - { from: "2026-09-15", name: "Inicio de curso (ESO y Bachillerato)", short: "Inicio de curso", kind: info }
+
+  # --- Primer trimestre ---
+  - { from: "2026-10-12", name: "Fiesta Nacional de España", short: "Fiesta Nacional" }
+  - { from: "2026-10-30", name: "Día del Docente (no lectivo)", short: "Día del Docente" }
+  - { from: "2026-11-02", name: "Todos los Santos (traslado)", short: "Todos los Santos" }
+  - { from: "2026-12-07", name: "Día de la Constitución (traslado)", short: "Constit." }
+  - { from: "2026-12-08", name: "Inmaculada Concepción", short: "Inmaculada" }
+  - { from: "2026-12-23", to: "2027-01-10", name: "Vacaciones de Navidad", short: "Navidad" }
+
+  # --- Segundo trimestre ---
+  - { from: "2027-02-08", to: "2027-02-09", name: "Fiestas de Carnaval (no lectivo)", short: "Carnaval" }
+  - { from: "2027-03-20", to: "2027-03-30", name: "Vacaciones de Semana Santa", short: "Semana Santa" }
+
+  # --- Tercer trimestre ---
+  - { from: "2027-04-23", name: "Día de Castilla y León", short: "Día de CyL" }
+  - { from: "2027-05-01", name: "Día del Trabajo", short: "Día del Trabajo" }
+  - { from: "2027-05-21", name: "Fin de curso 2º Bachillerato", short: "Fin 2º Bach", kind: info }
+  - { from: "2027-06-16", to: "2027-06-22", name: "Pruebas extraordinarias 2º Bachillerato", short: "Extraord. 2º Bach", kind: note }
+  - { from: "2027-06-17", name: "Fin de curso 1º Bachillerato", short: "Fin 1º Bach", kind: info }
+  - { from: "2027-06-23", to: "2027-06-29", name: "Pruebas extraordinarias 1º Bachillerato", short: "Extraord. 1º Bach", kind: note }
+  - { from: "2027-06-24", name: "Fin de curso ESO", short: "Fin ESO", kind: info }
+
+  # --- Verano ---
+  - { from: "2027-07-01", to: "2027-08-31", name: "Vacaciones de verano", short: "Verano" }
+
+  # --- Festivos locales (rellenar) ---
+  # - { from: "2027-05-13", name: "San Pedro Regalado (festivo local)", short: "Festivo local" }

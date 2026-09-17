@@ -134,15 +134,45 @@ func (w *Week) WeekNumber(large interface{}) string {
 }
 
 func (w *Week) weekNumber() int {
-	_, wn := w.Days[0].Time.ISOWeek()
+	_, wn := w.isoYearWeek()
+
+	return wn
+}
+
+// isoYearWeek returns the (ISO year, ISO week) pair representing this
+// week, matching the original weekNumber() heuristic: it prefers the
+// first non-zero day's ISO week, unless another (later) non-zero day in
+// the week disagrees (which can happen when the configured week-start
+// weekday doesn't align with ISO's Monday-Sunday weeks), in which case
+// that other day's (year, week) wins.
+//
+// Days[0] itself may be a zero-value Day{} (partial weeks at the start
+// of a month-only view are left-padded with blanks), so it must not be
+// used as the seed value: a zero time.Time reports ISO (year 1, week 1),
+// which can coincidentally match a real "week 1" and silently produce
+// the wrong ISO year.
+func (w *Week) isoYearWeek() (int, int) {
+	var isoYear, wn int
+	seeded := false
 
 	for _, t := range w.Days {
-		if _, cwn := t.Time.ISOWeek(); !t.Time.IsZero() && cwn != wn {
-			return cwn
+		if t.Time.IsZero() {
+			continue
+		}
+
+		if !seeded {
+			isoYear, wn = t.Time.ISOWeek()
+			seeded = true
+
+			continue
+		}
+
+		if cy, cwn := t.Time.ISOWeek(); cwn != wn {
+			return cy, cwn
 		}
 	}
 
-	return wn
+	return isoYear, wn
 }
 
 func (w *Week) Breadcrumb() string {
@@ -239,16 +269,9 @@ func (w *Week) MonthsBreadcrumb() header.ItemsGroup {
 }
 
 func (w *Week) ref() string {
-	prefix := ""
-	wn := w.weekNumber()
-	rm := w.rightMonth()
-	ry := w.rightYear()
+	isoYear, wn := w.isoYearWeek()
 
-	if isClassicCalendarYear() && wn > 50 && rm == time.January && ry == rangeStartCalYear {
-		prefix = "fw"
-	}
-
-	return prefix + "Week " + strconv.Itoa(wn)
+	return weekRefString(wn, isoYear)
 }
 
 func (w *Week) leftMonth() time.Month {

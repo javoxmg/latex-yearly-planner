@@ -55,11 +55,7 @@ func (d Day) WeekLink() string {
 }
 
 func (d Day) Breadcrumb(prefix string, leaf string, shorten bool) string {
-	wpref := ""
-	_, wn := d.Time.ISOWeek()
-	if isClassicCalendarYear() && wn > 50 && d.Time.Month() == time.January {
-		wpref = "fw"
-	}
+	isoYear, wn := d.Time.ISOWeek()
 
 	dayLayout := "Monday, 2"
 	if shorten {
@@ -71,7 +67,7 @@ func (d Day) Breadcrumb(prefix string, leaf string, shorten bool) string {
 		header.NewIntItem(d.Time.Year()),
 		header.NewTextItem("Q" + strconv.Itoa(quarterNumber(d.Time.Year(), d.Time.Month()))),
 		header.NewMonthItem(d.Time.Month()).Shorten(shorten),
-		header.NewTextItem("Week " + strconv.Itoa(wn)).RefPrefix(wpref),
+		header.NewTextItem("Week " + strconv.Itoa(wn)).RefText(weekRefString(wn, isoYear)),
 	}
 
 	if len(leaf) > 0 {

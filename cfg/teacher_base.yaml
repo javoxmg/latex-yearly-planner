@@ -3,13 +3,18 @@
 
 weekstart: 1          # Lunes como primer día
 ampmtime: false       # Formato 24h (típico en Europa)
-dotted: true          # Puntos en lugar de líneas
+dotted: false         # Líneas en lugar de puntos (preferencia confirmada por el usuario)
 calafterschedule: false
 addlasthalfhour: true
 
-# Período académico: septiembre (mes 9) durante 10 meses => sept-junio
+# Período académico: septiembre (mes 9) durante 12 meses => sept-agosto.
+# Se usan 12 meses (en vez de 10, sept-junio) para que los 4 trimestres
+# queden exactamente iguales (3 meses cada uno), que es lo que asumen los
+# templates de layout (quarterly, months-on-side). Con 10 meses el último
+# trimestre queda con 1 solo mes y el layout se rompe (huecos vacíos).
+# Julio y agosto quedan igualmente generados (vacaciones), sin más coste.
 startmonth: 9
-nummonths: 10
+nummonths: 12
 
 layout:
   paper:

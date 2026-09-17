@@ -1,6 +1,9 @@
 package cal
 
-import "time"
+import (
+	"strconv"
+	"time"
+)
 
 // The functions and package-level state in this file generalize the
 // original "calendar year" assumption (always January through December)
@@ -54,9 +57,14 @@ func quarterNumber(year int, month time.Month) int {
 	return monthIndex(year, month)/3 + 1
 }
 
-// isClassicCalendarYear reports whether the range being generated is a
-// plain calendar year (Jan-Dec), which is the only case where the
-// original "fw" (first/foreign week) ref prefix logic applies.
-func isClassicCalendarYear() bool {
-	return rangeStartMonth == time.January
+// weekRefString builds the unique reference string used to link to a
+// week, from its ISO week number and ISO year. A plain "Week N" is not
+// safe to use as a unique LaTeX anchor name here: a school-year range
+// (say, September to August) covers close to a full year and can end on
+// the very same ISO week number it started on, in a different ISO year.
+// Including the ISO year in the ref keeps every week's anchor unique
+// regardless of how the range is configured, while the visible page
+// title (Week.Name/day breadcrumb text) stays just "Week N".
+func weekRefString(isoWeek, isoYear int) string {
+	return "Week " + strconv.Itoa(isoWeek) + "@" + strconv.Itoa(isoYear)
 }

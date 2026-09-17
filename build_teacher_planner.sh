@@ -53,12 +53,17 @@ if [ ! -f "cfg/teacher_base.yaml" ]; then
 fi
 
 # Generar el planificador
+# Config por defecto: período académico + layout "months on side" +
+# medidas específicas de ReMarkable 2.
+# Si tu RM2 usa firmware DDVK, cambia cfg/rm2.base.yaml por
+# cfg/rm2_ddvk.base.yaml (o cfg/rm2_ddvk_lh.base.yaml para zurdos) en la
+# línea de abajo.
 echo -e "${BLUE}Generando planificador...${NC}"
 echo ""
 
 PLANNER_YEAR=$START_YEAR \
 PASSES=1 \
-CFG="cfg/base.yaml,cfg/teacher_base.yaml,cfg/template_breadcrumb.yaml" \
+CFG="cfg/base.yaml,cfg/teacher_base.yaml,cfg/rm2.base.yaml,cfg/template_months_on_side.yaml,cfg/rm2.mos.default.yaml" \
 NAME="teacher_planner_${SCHOOL_YEAR}" \
 ./single.sh
 

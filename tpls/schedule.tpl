@@ -1,3 +1,6 @@
+{{- if .Cfg.Schedule.Enabled -}}
+{{- template "schedule_classes.tpl" . -}}
+{{- else -}}
 \myUnderline{Schedule\textcolor{white}{g}}\vskip-\myLenLineThicknessDefault
 {{range $hour := .Day.Hours .Cfg.Layout.Numbers.DailyBottomHour .Cfg.Layout.Numbers.DailyTopHour -}}
 \myLineHeightButLine%
@@ -9,3 +12,4 @@
 \myLineLightGray\vskip\myLenLineHeightButLine\myLineGray
 {{- end}}
 {{if $.Cfg.AddLastHalfHour}}\vskip\myLenLineHeightButLine\vbox to 0pt{\myLineLightGray}{{end}}
+{{end -}}

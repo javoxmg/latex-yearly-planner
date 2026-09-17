@@ -38,6 +38,8 @@
 \newlength{\myLenHeaderResizeBox}
 \newlength{\myLenHeaderSideQuartersWidth}
 \newlength{\myLenHeaderSideMonthsWidth}
+\newlength{\myLenDailyHourHeight}
+\newlength{\myLenScheduleGutter}
 
 {{- $lengths := .Cfg.Layout.Lengths -}}
 \setlength{\myLenTabColSep}{ {{- $lengths.TabColSep -}} }
@@ -55,12 +57,15 @@
 \setlength{\myLenHeaderResizeBox}{ {{- $lengths.HeaderResizeBox -}} }
 \setlength{\myLenHeaderSideQuartersWidth}{ {{- $lengths.HeaderSideQuartersWidth -}} }
 \setlength{\myLenHeaderSideMonthsWidth}{ {{- $lengths.HeaderSideMonthsWidth -}} }
+\setlength{\myLenDailyHourHeight}{ {{- $lengths.DailyHourHeight -}} }
+\setlength{\myLenScheduleGutter}{ {{- $lengths.ScheduleGutter -}} }
 
 \newcommand{\myQuarterlySpring}{ {{- $lengths.QuarterlySpring -}} }
 \newcommand{\myMonthlySpring}{ {{- $lengths.MonthlySpring -}} }
 \newcommand{\myDailySpring}{ {{- $lengths.DailySpring -}} }
 \newcommand{\myColorGray}{ {{- .Cfg.Layout.Colors.Gray -}} }
 \newcommand{\myColorLightGray}{ {{- .Cfg.Layout.Colors.LightGray -}} }
+\newcommand{\myColorClassFill}{ {{- .Cfg.Layout.Colors.ClassFill -}} }
 
 \newcommand{\myLinePlain}{\hrule width \linewidth height \myLenLineThicknessDefault}
 \newcommand{\myLineThick}{\hrule width \linewidth height \myLenLineThicknessThick}

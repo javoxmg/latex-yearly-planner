@@ -2,7 +2,7 @@
 #
 # build_teacher_planner.sh
 # Script para generar un planificador docente automáticamente
-# Período académico: Septiembre - Junio
+# Período académico: Septiembre - Agosto (12 meses, 4 trimestres iguales)
 #
 # Uso:
 #   ./build_teacher_planner.sh 2025     # Genera planner para 2025-2026
@@ -22,7 +22,7 @@ if [ $# -eq 0 ]; then
     echo -e "${YELLOW}Uso: ./build_teacher_planner.sh <AÑO>${NC}"
     echo "Ejemplo: ./build_teacher_planner.sh 2025"
     echo ""
-    echo "Esto genera un planner de septiembre 2025 - junio 2026"
+    echo "Esto genera un planner de septiembre 2025 - agosto 2026"
     exit 1
 fi
 
@@ -35,7 +35,7 @@ echo -e "${BLUE}  📚 Generador de Planificador Docente${NC}"
 echo -e "${BLUE}════════════════════════════════════════${NC}"
 echo ""
 echo -e "${GREEN}Período académico:${NC} $SCHOOL_YEAR"
-echo -e "${GREEN}Año de generación:${NC} $START_YEAR (sept 2025 - junio 2026)"
+echo -e "${GREEN}Año de generación:${NC} $START_YEAR (sept $START_YEAR - agosto $END_YEAR)"
 echo ""
 
 # Verificar que estamos en la carpeta correcta
@@ -45,25 +45,34 @@ if [ ! -f "single.sh" ]; then
     exit 1
 fi
 
-# Verificar que exista teacher_base.yaml
-if [ ! -f "cfg/teacher_base.yaml" ]; then
-    echo -e "${YELLOW}Error: No se encuentra cfg/teacher_base.yaml${NC}"
-    echo "Asegúrate de haber copiado teacher_base.yaml en la carpeta cfg/"
-    exit 1
-fi
+for f in cfg/teacher_base.yaml cfg/teacher_schedule.yaml; do
+    if [ ! -f "$f" ]; then
+        echo -e "${YELLOW}Error: No se encuentra $f${NC}"
+        exit 1
+    fi
+done
 
-# Generar el planificador
-# Config por defecto: período académico + layout "months on side" +
-# medidas específicas de ReMarkable 2.
+# Cadena de configs ("el último gana"):
+#   base.yaml                      valores por defecto del proyecto
+#   rm2.base.yaml                  papel y márgenes de ReMarkable 2
+#   template_months_on_side.yaml   layout "months on side"
+#   rm2.mos.default.yaml           ajustes de RM2 para ese layout
+#   teacher_base.yaml              curso académico (sept-agosto), líneas, lunes
+#   teacher_schedule.yaml          horario de clases y horas lectivas (8-15)
+#
 # Si tu RM2 usa firmware DDVK, cambia cfg/rm2.base.yaml por
-# cfg/rm2_ddvk.base.yaml (o cfg/rm2_ddvk_lh.base.yaml para zurdos) en la
-# línea de abajo.
+# cfg/rm2_ddvk.base.yaml (o cfg/rm2_ddvk_lh.base.yaml para zurdos).
+# Para generar SIN horario (columna de horas clásica) basta con quitar
+# cfg/teacher_schedule.yaml de la lista.
 echo -e "${BLUE}Generando planificador...${NC}"
 echo ""
 
+# PASSES=2 es necesario: las pestañas laterales (marginnote) solo se colocan
+# bien en la segunda pasada de xelatex. Con una sola pasada aparecen
+# desplazadas encima del contenido.
 PLANNER_YEAR=$START_YEAR \
-PASSES=1 \
-CFG="cfg/base.yaml,cfg/teacher_base.yaml,cfg/rm2.base.yaml,cfg/template_months_on_side.yaml,cfg/rm2.mos.default.yaml" \
+PASSES=2 \
+CFG="cfg/base.yaml,cfg/rm2.base.yaml,cfg/template_months_on_side.yaml,cfg/rm2.mos.default.yaml,cfg/teacher_base.yaml,cfg/teacher_schedule.yaml" \
 NAME="teacher_planner_${SCHOOL_YEAR}" \
 ./single.sh
 
@@ -72,8 +81,5 @@ echo -e "${GREEN}✅ ¡Listo!${NC}"
 echo ""
 echo -e "Archivo generado: ${GREEN}teacher_planner_${SCHOOL_YEAR}.pdf${NC}"
 echo ""
-echo "Próximos pasos:"
-echo "  1️⃣  Revisar el PDF generado"
-echo "  2️⃣  Ajustar configuración si es necesario"
-echo "  3️⃣  Cuando esté listo, proceder a FASE 2 (horario semanal)"
+echo "Para cambiar el horario de clases: edita cfg/teacher_schedule.yaml"
 echo ""

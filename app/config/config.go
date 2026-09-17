@@ -26,6 +26,10 @@ type Config struct {
 	Pages Pages
 
 	Layout Layout
+
+	// Schedule is the teacher's weekly class timetable, drawn on the
+	// daily pages when enabled (see cfg/teacher_schedule.yaml).
+	Schedule Schedule
 }
 
 type Debug struct {
@@ -61,6 +65,9 @@ type RenderBlock struct {
 type Colors struct {
 	Gray      string
 	LightGray string
+	// ClassFill is the fill color of the class blocks drawn on the daily
+	// schedule when Schedule.Enabled is set (e.g. "gray!15").
+	ClassFill string
 }
 
 type Layout struct {
@@ -142,6 +149,21 @@ func New(pathConfigs ...string) (Config, error) {
 
 	if cfg.NumMonths == 0 {
 		cfg.NumMonths = 12
+	}
+
+	// Defaults for the daily class schedule; only used by the templates
+	// when Schedule.Enabled is set, but they must be valid LaTeX anyway
+	// because macro.tpl always defines them.
+	if cfg.Layout.Lengths.DailyHourHeight == "" {
+		cfg.Layout.Lengths.DailyHourHeight = "1cm"
+	}
+
+	if cfg.Layout.Lengths.ScheduleGutter == "" {
+		cfg.Layout.Lengths.ScheduleGutter = "6mm"
+	}
+
+	if cfg.Layout.Colors.ClassFill == "" {
+		cfg.Layout.Colors.ClassFill = "gray!15"
 	}
 
 	return cfg, nil

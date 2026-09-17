@@ -1,11 +1,16 @@
 # Teacher Edition - Configuración base para planificador docente
-# Extiende base.yaml para uso académico (sept-junio)
+#
+# Este archivo va DESPUÉS de los archivos de dispositivo/plantilla
+# (rm2.*.yaml, template_*.yaml) en la cadena de configs, para que las
+# preferencias del docente ganen. Solo contiene las claves que cambian
+# respecto a base.yaml; todo lo demás (papel, márgenes, medidas) lo ponen
+# base.yaml y el archivo de dispositivo.
 
 weekstart: 1          # Lunes como primer día
 ampmtime: false       # Formato 24h (típico en Europa)
 dotted: false         # Líneas en lugar de puntos (preferencia confirmada por el usuario)
 calafterschedule: false
-addlasthalfhour: true
+addlasthalfhour: false
 
 # Período académico: septiembre (mes 9) durante 12 meses => sept-agosto.
 # Se usan 12 meses (en vez de 10, sept-junio) para que los 4 trimestres
@@ -15,57 +20,3 @@ addlasthalfhour: true
 # Julio y agosto quedan igualmente generados (vacaciones), sin más coste.
 startmonth: 9
 nummonths: 12
-
-layout:
-  paper:
-    width: 15.6cm
-    height: 20.9cm
-
-    marginparwidth: 1cm
-    marginparsep: 0cm
-    reversemargins: true
-
-    margin:
-      top: 1.2cm
-      bottom: 0.7cm
-      left: 0.5cm
-      right: 0.5cm
-
-  numbers:
-    arraystretch: 1.5
-    quarterlylines: 36
-    weeklylines: 11
-    dailytodos: 8
-    dailynotes: 25
-    dailypersonal: 6
-    dailybottomhour: 7
-    dailytophour: 23
-    dailydiarygoals: 10
-    dailydiarygrateful: 4
-    dailydiarybest: 4
-    dailydiarylog: 24
-    todolinesintodopage: 10
-    notesindexpages: 3
-    notesonpage: 35
-    dotheightfull: 36
-    dotwidthfull: 30
-    dotwidthtwothirds: 20
-
-  lengths:
-    tabcolsep: 3.5pt
-    linethicknessdefault: .4pt
-    linethicknessthick: .8pt
-    lineheightbutline: \dimexpr5mm-.4pt
-    twocolsep: 5pt
-    tricolsep: 5pt
-    fivecolsep: 5pt
-    monthlycellheight: 55pt
-    notesindexcellheight: 1.37cm
-    headerresizebox: 6mm
-    headersidequarterswidth: 4cm
-    headersidemonthswidth: 14.5cm
-    dailyspring: \textcolor{white}{.}
-
-  colors:
-    gray: gray
-    lightgray: gray!50

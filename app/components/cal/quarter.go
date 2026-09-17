@@ -33,11 +33,16 @@ type Quarter struct {
 func NewQuarter(wd time.Weekday, year *Year, qrtr int) *Quarter {
 	out := &Quarter{Year: year, Number: qrtr}
 
-	start := time.Month(qrtr*3 - 2)
-	end := start + 2
+	startIdx := (qrtr - 1) * 3
+	endIdx := startIdx + 2
 
-	for month := start; month <= end; month++ {
-		out.Months = append(out.Months, NewMonth(wd, year, out, month))
+	if endIdx > year.NumMonths-1 {
+		endIdx = year.NumMonths - 1
+	}
+
+	for idx := startIdx; idx <= endIdx; idx++ {
+		calYear, month := monthAt(idx)
+		out.Months = append(out.Months, NewMonth(wd, year, out, month, calYear))
 	}
 
 	return out

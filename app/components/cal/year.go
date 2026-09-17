@@ -1,6 +1,7 @@
 package cal
 
 import (
+	"math"
 	"strconv"
 	"time"
 
@@ -10,16 +11,36 @@ import (
 
 type Years []*Year
 type Year struct {
-	Number   int
+	Number     int // starting calendar year of the range (e.g. 2025)
+	StartMonth time.Month
+	NumMonths  int
+
 	Quarters Quarters
 	Weeks    Weeks
 }
 
-func NewYear(wd time.Weekday, year int) *Year {
-	out := &Year{Number: year}
+// NewYear builds a Year covering numMonths consecutive months starting at
+// (year, startMonth). Passing startMonth=January and numMonths=12
+// reproduces the original plain-calendar-year behavior; any other start
+// month/count builds a "school year" style range, which may span two
+// calendar years (e.g. September 2025 - June 2026).
+func NewYear(wd time.Weekday, year int, startMonth time.Month, numMonths int) *Year {
+	if startMonth == 0 {
+		startMonth = time.January
+	}
+
+	if numMonths <= 0 {
+		numMonths = 12
+	}
+
+	out := &Year{Number: year, StartMonth: startMonth, NumMonths: numMonths}
+
+	setRange(year, startMonth, numMonths)
+
 	out.Weeks = NewWeeksForYear(wd, out)
 
-	for q := 1; q <= 4; q++ {
+	numQuarters := int(math.Ceil(float64(numMonths) / 3.))
+	for q := 1; q <= numQuarters; q++ {
 		out.Quarters = append(out.Quarters, NewQuarter(wd, out, q))
 	}
 

@@ -31,14 +31,21 @@ type Month struct {
 	Month   time.Month
 	Weekday time.Weekday
 	Weeks   Weeks
+
+	// CalendarYear is the real calendar year this month falls in. It
+	// usually equals Year.Number, except for months in a school-year
+	// range that spill into the following calendar year (e.g. the
+	// January-June months of a September-June school year).
+	CalendarYear int
 }
 
-func NewMonth(wd time.Weekday, year *Year, qrtr *Quarter, month time.Month) *Month {
+func NewMonth(wd time.Weekday, year *Year, qrtr *Quarter, month time.Month, calendarYear int) *Month {
 	m := &Month{
-		Year:    year,
-		Quarter: qrtr,
-		Month:   month,
-		Weekday: wd,
+		Year:         year,
+		Quarter:      qrtr,
+		Month:        month,
+		Weekday:      wd,
+		CalendarYear: calendarYear,
 	}
 
 	m.Weeks = NewWeeksForMonth(wd, year, qrtr, m)
@@ -110,7 +117,7 @@ func (m *Month) EndTable(typ interface{}) string {
 
 func (m *Month) Breadcrumb() string {
 	return header.Items{
-		header.NewIntItem(m.Year.Number),
+		header.NewIntItem(m.CalendarYear),
 		header.NewTextItem("Q" + strconv.Itoa(m.Quarter.Number)),
 		header.NewMonthItem(m.Month).Ref(),
 	}.Table(true)
@@ -119,12 +126,16 @@ func (m *Month) Breadcrumb() string {
 func (m *Month) PrevNext() header.Items {
 	items := header.Items{}
 
-	if m.Month > time.January {
-		items = append(items, header.NewMonthItem(m.Month-1))
+	idx := monthIndex(m.CalendarYear, m.Month)
+
+	if idx > 0 {
+		_, prevMonth := monthAt(idx - 1)
+		items = append(items, header.NewMonthItem(prevMonth))
 	}
 
-	if m.Month < time.December {
-		items = append(items, header.NewMonthItem(m.Month+1))
+	if idx < m.Year.NumMonths-1 {
+		_, nextMonth := monthAt(idx + 1)
+		items = append(items, header.NewMonthItem(nextMonth))
 	}
 
 	return items

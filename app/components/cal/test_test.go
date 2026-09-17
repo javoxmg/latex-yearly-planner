@@ -9,7 +9,7 @@ import (
 )
 
 func TestTest(t *testing.T) {
-	year := cal.NewYear(time.Monday, 2021)
+	year := cal.NewYear(time.Monday, 2021, time.January, 12)
 	weeks := cal.NewWeeksForYear(time.Monday, year)
 	fmt.Println(weeks)
 }

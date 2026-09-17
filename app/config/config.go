@@ -13,7 +13,9 @@ import (
 type Config struct {
 	Debug Debug
 
-	Year                int `env:"PLANNER_YEAR"`
+	Year                int        `env:"PLANNER_YEAR"`
+	StartMonth          time.Month `env:"PLANNER_START_MONTH"`
+	NumMonths           int        `env:"PLANNER_NUM_MONTHS"`
 	WeekStart           time.Weekday
 	Dotted              bool
 	CalAfterSchedule    bool
@@ -132,6 +134,14 @@ func New(pathConfigs ...string) (Config, error) {
 
 	if cfg.Year == 0 {
 		cfg.Year = time.Now().Year()
+	}
+
+	if cfg.StartMonth == 0 {
+		cfg.StartMonth = time.January
+	}
+
+	if cfg.NumMonths == 0 {
+		cfg.NumMonths = 12
 	}
 
 	return cfg, nil

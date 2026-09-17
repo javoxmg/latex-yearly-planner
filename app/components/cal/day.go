@@ -1,7 +1,6 @@
 package cal
 
 import (
-	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -58,7 +57,7 @@ func (d Day) WeekLink() string {
 func (d Day) Breadcrumb(prefix string, leaf string, shorten bool) string {
 	wpref := ""
 	_, wn := d.Time.ISOWeek()
-	if wn > 50 && d.Time.Month() == time.January {
+	if isClassicCalendarYear() && wn > 50 && d.Time.Month() == time.January {
 		wpref = "fw"
 	}
 
@@ -70,7 +69,7 @@ func (d Day) Breadcrumb(prefix string, leaf string, shorten bool) string {
 	dayItem := header.NewTextItem(d.Time.Format(dayLayout)).RefText(d.Time.Format(time.RFC3339))
 	items := header.Items{
 		header.NewIntItem(d.Time.Year()),
-		header.NewTextItem("Q" + strconv.Itoa(int(math.Ceil(float64(d.Time.Month())/3.)))),
+		header.NewTextItem("Q" + strconv.Itoa(quarterNumber(d.Time.Year(), d.Time.Month()))),
 		header.NewMonthItem(d.Time.Month()).Shorten(shorten),
 		header.NewTextItem("Week " + strconv.Itoa(wn)).RefPrefix(wpref),
 	}
@@ -113,11 +112,11 @@ func (d Day) Prev() Day {
 }
 
 func (d Day) NextExists() bool {
-	return d.Time.Month() < time.December || d.Time.Day() < 31
+	return d.Time.Before(rangeEnd)
 }
 
 func (d Day) PrevExists() bool {
-	return d.Time.Month() > time.January || d.Time.Day() > 1
+	return d.Time.After(rangeStart)
 }
 
 func (d Day) Hours(bottom, top int) Days {
@@ -141,7 +140,7 @@ func (d Day) FormatHour(ampm interface{}) string {
 }
 
 func (d Day) Quarter() int {
-	return int(math.Ceil(float64(d.Time.Month()) / 3.))
+	return quarterNumber(d.Time.Year(), d.Time.Month())
 }
 
 func (d Day) Month() time.Month {

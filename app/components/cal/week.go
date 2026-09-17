@@ -1,7 +1,6 @@
 package cal
 
 import (
-	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -22,7 +21,7 @@ type Week struct {
 }
 
 func NewWeeksForMonth(wd time.Weekday, year *Year, qrtr *Quarter, month *Month) Weeks {
-	ptr := time.Date(year.Number, month.Month, 1, 0, 0, 0, 0, time.Local)
+	ptr := time.Date(month.CalendarYear, month.Month, 1, 0, 0, 0, 0, time.Local)
 	weekday := ptr.Weekday()
 	shift := (7 + weekday - wd) % 7
 
@@ -55,10 +54,11 @@ func NewWeeksForMonth(wd time.Weekday, year *Year, qrtr *Quarter, month *Month) 
 }
 
 func NewWeeksForYear(wd time.Weekday, year *Year) Weeks {
-	ptr := selectStartWeek(year.Number, wd)
+	ptr := selectStartWeek(wd)
 
-	qrtr1 := NewQuarter(wd, year, 1)
-	mon1 := NewMonth(wd, year, qrtr1, time.January)
+	firstCalYear, firstMonth := monthAt(0)
+	qrtr1 := NewQuarter(wd, year, quarterNumber(firstCalYear, firstMonth))
+	mon1 := NewMonth(wd, year, qrtr1, firstMonth, firstCalYear)
 	week := &Week{Weekday: wd, Year: year, Quarters: Quarters{qrtr1}, Months: Months{mon1}}
 	weeks := make(Weeks, 0, 53)
 
@@ -69,7 +69,7 @@ func NewWeeksForYear(wd time.Weekday, year *Year) Weeks {
 
 	weeks = append(weeks, week)
 
-	for ptr.Time.Year() == year.Number {
+	for !ptr.Time.After(rangeEnd) {
 		weeks = append(weeks, fillWeekly(wd, year, ptr))
 		ptr = ptr.Add(7)
 	}
@@ -81,8 +81,8 @@ func NewWeeksForYear(wd time.Weekday, year *Year) Weeks {
 }
 
 func fillWeekly(wd time.Weekday, year *Year, ptr Day) *Week {
-	qrtr := NewQuarter(wd, year, int(math.Ceil(float64(ptr.Time.Month())/3.)))
-	month := NewMonth(wd, year, qrtr, ptr.Time.Month())
+	qrtr := NewQuarter(wd, year, quarterNumber(ptr.Time.Year(), ptr.Time.Month()))
+	month := NewMonth(wd, year, qrtr, ptr.Time.Month(), ptr.Time.Year())
 
 	week := &Week{Weekday: wd, Year: year, Quarters: Quarters{qrtr}, Months: Months{month}}
 
@@ -97,22 +97,21 @@ func fillWeekly(wd time.Weekday, year *Year, ptr Day) *Week {
 	}
 
 	if week.monthOverlap() {
-		month = NewMonth(wd, year, qrtr, week.rightMonth())
+		month = NewMonth(wd, year, qrtr, week.rightMonth(), week.rightYear())
 		week.Months = append(week.Months, month)
 	}
 
 	return week
 }
 
-func selectStartWeek(year int, weekStart time.Weekday) Day {
-	soy := time.Date(year, time.January, 1, 0, 0, 0, 0, time.Local)
-	sow := soy
+func selectStartWeek(weekStart time.Weekday) Day {
+	sow := rangeStart
 
 	for sow.Weekday() != weekStart {
 		sow = sow.AddDate(0, 0, 1)
 	}
 
-	if sow.Year() == year && sow.Day() > 1 {
+	if sow.After(rangeStart) {
 		sow = sow.AddDate(0, 0, -7)
 	}
 
@@ -164,11 +163,11 @@ func (w *Week) quarterOverlap() bool {
 }
 
 func (w *Week) leftQuarter() int {
-	return int(math.Ceil(float64(w.Days[0].Time.Month()) / 3.))
+	return quarterNumber(w.leftYear(), w.leftMonth())
 }
 
 func (w *Week) rightQuarter() int {
-	return int(math.Ceil(float64(w.Days[6].Time.Month()) / 3.))
+	return quarterNumber(w.rightYear(), w.rightMonth())
 }
 
 func (w *Week) rightMonth() time.Month {
@@ -200,15 +199,15 @@ func (w *Week) PrevNext() header.Items {
 }
 
 func (w *Week) NextExists() bool {
-	stillThisYear := w.Days[6].Time.Year() == w.Year.Number
-	isntTheLastDayOfTheYear := w.Days[0].Time.Month() != time.December || w.Days[0].Time.Day() != 31
-	return stillThisYear && isntTheLastDayOfTheYear
+	stillInRange := !w.Days[6].Time.After(rangeEnd)
+	isntTheLastDayOfRange := !w.Days[0].Time.Equal(rangeEnd)
+	return stillInRange && isntTheLastDayOfRange
 }
 
 func (w *Week) PrevExists() bool {
-	stilThisYear := w.Days[0].Time.Year() == w.Year.Number
-	isntTheFirstDayOfTheYear := w.Days[0].Time.Month() != time.January || w.Days[0].Time.Day() != 1
-	return stilThisYear && isntTheFirstDayOfTheYear
+	stillInRange := !w.Days[0].Time.Before(rangeStart)
+	isntTheFirstDayOfRange := !w.Days[0].Time.Equal(rangeStart)
+	return stillInRange && isntTheFirstDayOfRange
 }
 
 func (w *Week) Next() *Week {
@@ -245,7 +244,7 @@ func (w *Week) ref() string {
 	rm := w.rightMonth()
 	ry := w.rightYear()
 
-	if wn > 50 && rm == time.January && ry == w.Year.Number {
+	if isClassicCalendarYear() && wn > 50 && rm == time.January && ry == rangeStartCalYear {
 		prefix = "fw"
 	}
 
@@ -259,6 +258,18 @@ func (w *Week) leftMonth() time.Month {
 		}
 
 		return day.Time.Month()
+	}
+
+	return -1
+}
+
+func (w *Week) leftYear() int {
+	for _, day := range w.Days {
+		if day.Time.IsZero() {
+			continue
+		}
+
+		return day.Time.Year()
 	}
 
 	return -1

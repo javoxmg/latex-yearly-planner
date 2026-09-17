@@ -70,8 +70,11 @@ echo ""
 # PASSES=2 es necesario: las pestañas laterales (marginnote) solo se colocan
 # bien en la segunda pasada de xelatex. Con una sola pasada aparecen
 # desplazadas encima del contenido.
+# TRANSLATION=spanish traduce los textos (meses, días, "Horario", etc.)
+# con translations/spanish.json; quita la línea para dejarlo en inglés.
 PLANNER_YEAR=$START_YEAR \
 PASSES=2 \
+TRANSLATION=spanish \
 CFG="cfg/base.yaml,cfg/rm2.base.yaml,cfg/template_months_on_side.yaml,cfg/rm2.mos.default.yaml,cfg/teacher_base.yaml,cfg/teacher_schedule.yaml" \
 NAME="teacher_planner_${SCHOOL_YEAR}" \
 ./single.sh

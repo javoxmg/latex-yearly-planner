@@ -32,7 +32,7 @@ func extra2(ctrc, sel1, sel2 bool, week *cal.Week, idxPage int) header.Items {
 	items := make(header.Items, 0, 3)
 
 	if week != nil {
-		items = append(items, header.NewCellItem(week.Name()))
+		items = append(items, header.NewCellItem(week.Name()).Refer(week.Ref()))
 	}
 
 	items = append(items, header.NewCellItem("Calendar").Selected(sel1))

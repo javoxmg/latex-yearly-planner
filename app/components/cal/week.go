@@ -335,3 +335,11 @@ func (w *Week) Name() string {
 func (w *Week) Target() string {
 	return tex.Hypertarget(w.ref(), w.Name())
 }
+
+// Ref is the unique anchor name of this week's page, for callers outside
+// the cal package (e.g. the page header's "Week N" cell) that need to
+// link to it. It must be used instead of Name(), which is only the
+// visible label and is not unique across a range that wraps a year.
+func (w *Week) Ref() string {
+	return w.ref()
+}

@@ -1,174 +1,98 @@
-from typing import Callable
+"""Translate the generated out/*.tex files into another language.
+
+Usage (normally run by single.sh when TRANSLATION is set):
+
+    python3 translate.py spanish
+
+It loads translations/<language>.json, a flat {"English": "Translation"}
+dictionary, and replaces every English label in the generated pages with
+its translation. Two rules keep the hyperlinks working:
+
+* Link *targets* are never translated. The first argument of every
+  \\hyperlink{...}{...} and \\hypertarget{...}{...} is masked before the
+  replacement pass and restored afterwards, so a page that links to
+  "September" keeps pointing at the "September" anchor while its visible
+  text becomes "Septiembre".
+* Everything else is replaced as whole words (case sensitive), longest
+  key first, so "Notes Index" wins over "Notes", and macro names such as
+  \\myNumWeeklyLines are left alone (a backslash or a letter right before
+  the word disables the match).
+
+Keys missing from the JSON simply stay in English.
+"""
+
 import json
-from sys import argv
+import re
 from glob import glob
+from sys import argv
 
 language = argv[1].lower()
 TRANSLATION_FOLDER = "translations/"
 file = f"{TRANSLATION_FOLDER}{language}.json"
 
 if file in glob(f"{TRANSLATION_FOLDER}*.json"):
-    with open(file, "r") as f:
+    with open(file, "r", encoding="utf-8") as f:
         translation = json.load(f)
 else:
     raise ValueError("Requested translation is not currently supported.\nThe program will now exit.")
 
-
-if any(not word.isascii() for word in translation.values()):
-    print("unicode found")
-    font_edit = r""
-else:
-    font_edit = ""
 print(f"Translating pdf to {language}")
 
-MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-WEEKDAYS_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-WEEK = ["Week"]
-NOTES = ["Notes"]
-NOTE = ["Note"]
-NOTES_INDEX = ["Notes Index"]
-ALL_NOTES = ["All notes"]
-SCHEDULE = ["Schedule"]
-PRIORITIES = ["Top priorities"]
-MORE = ["More"]
-REFLECT = ["Reflect"]
-PHRASES = ["Things I'm grateful for", "The best thing that happened today", "Daily log"]
+FILES = [
+    "out/annual.tex",
+    "out/quarterly.tex",
+    "out/monthly.tex",
+    "out/weekly.tex",
+    "out/daily.tex",
+    "out/daily_reflect.tex",
+    "out/daily_notes.tex",
+    "out/notes_indexed.tex",
+]
 
-def handle_all() -> None:
-    handle_annual()
-    handle_quarterly()
-    handle_monthly()
-    handle_weekly()
-    handle_daily()
-    handle_daily_reflect()
-    handle_daily_notes()
-    handle_notes_indexed()
+# Keys that contain characters other than letters/spaces/apostrophes (for
+# example the weekday-letter row "W & M & T & W & T & F & S & S") are
+# replaced literally; the rest as whole words.
+literal_keys = [k for k in translation if not re.fullmatch(r"[A-Za-z' ]+", k) and k != "May (short)"]
+word_keys = sorted((k for k in translation if k not in literal_keys), key=len, reverse=True)
+word_re = re.compile(r"(?<![A-Za-z\\])(" + "|".join(re.escape(k) for k in word_keys) + r")(?![A-Za-z])")
 
-def add_identifier(keys: list[str], func: Callable[[str], str] = lambda x: x, dictionary: dict[str, str] = translation) -> dict[str, str]:
-    return {func(key): func(dictionary.get(key)) for key in keys}
+LINK_RE = re.compile(r"(\\(?:hyperlink|hypertarget)\{)([^{}]*)(\})")
 
-def handle_annual() -> None:
-    with open("out/annual.tex", "r") as file:
-        text = file.read()
+# The months-on-side layout prints the month tabs with the short month
+# name ("Sep", "Oct"...). For May the short and the long name are the same
+# word, so inside the tab table the display "May" is translated with the
+# "May (short)" key (falling back to the plain "May" key) instead.
+SIDE_TABS_RE = re.compile(
+    r"\\begin\{tabularx\}\{\\myLenHeaderSideMonthsWidth\}.*?\\end\{tabularx\}", re.DOTALL
+)
+MAY_SHORT = "\x02MAYSHORT\x02"
 
-    replace = add_identifier(MONTHS, lambda x: "{" + x + "}}")
-    replace |= add_identifier(NOTES, lambda x: "{" + x + "}")
-    for english, spanish in replace.items():
-        text = text.replace(english, spanish)
 
-    with open("out/annual.tex", "w") as file:
-        file.write(font_edit)
-        file.write(text)
+def translate_text(text: str) -> str:
+    targets: list[str] = []
 
-def handle_quarterly() -> None:
-    with open("out/quarterly.tex", "r") as file:
-        text = file.read()
+    def mask(m: re.Match) -> str:
+        targets.append(m.group(2))
+        return f"{m.group(1)}\x00{len(targets) - 1}\x00{m.group(3)}"
 
-    replace = add_identifier(MONTHS, lambda x: "{" + x + "}}")
-    replace |= add_identifier(NOTES, lambda x: "{" + x + "}")
-    for english, spanish in replace.items():
-        text = text.replace(english, spanish)
+    text = SIDE_TABS_RE.sub(lambda m: m.group(0).replace(r"\hyperlink{May}{May}", r"\hyperlink{May}{" + MAY_SHORT + "}"), text)
+    text = LINK_RE.sub(mask, text)
 
-    with open("out/quarterly.tex", "w") as file:
-        file.write(font_edit)
-        file.write(text)
+    for key in literal_keys:
+        text = text.replace(key, translation[key])
 
-def handle_monthly() -> None:
-    with open("out/monthly.tex", "r") as file:
-        text = file.read()
+    text = word_re.sub(lambda m: translation[m.group(1)], text)
+    text = text.replace(MAY_SHORT, translation.get("May (short)", translation.get("May", "May")))
 
-    replace = add_identifier(MONTHS, lambda x: "}{" + x + "}")
-    replace |= add_identifier(WEEKDAYS)
-    replace |= add_identifier(WEEK, lambda x: "[c]{" + x)
-    replace |= add_identifier(NOTES, lambda x: "{" + x + "}")
-    for english, spanish in replace.items():
-        text = text.replace(english, spanish)
+    return re.sub(r"\x00(\d+)\x00", lambda m: targets[int(m.group(1))], text)
 
-    with open("out/monthly.tex", "w") as file:
-        file.write(font_edit)
-        file.write(text)
 
-def handle_weekly() -> None:
-    with open("out/weekly.tex", "r") as file:
-        text = file.read()
+for path in FILES:
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            original = fh.read()
+    except FileNotFoundError:
+        continue
 
-    replace = add_identifier(MONTHS, lambda x: "}{" + x + "}")
-    replace |= add_identifier(WEEK, lambda x: "}{" + x)
-    replace |= add_identifier(WEEKDAYS, lambda x: ", " + x + "}")
-    replace |= add_identifier(NOTES, lambda x: "{" + x)
-    for english, spanish in replace.items():
-        text = text.replace(english, spanish)
-
-    with open("out/weekly.tex", "w") as file:
-        file.write(font_edit)
-        file.write(text)
-
-def handle_daily() -> None:
-    with open("out/daily.tex", "r") as file:
-        text = file.read()
-
-    replace = add_identifier(MONTHS, lambda x: "}{" + x + "}")
-    replace |= add_identifier(WEEK, lambda x: "}{" + x)
-    replace |= add_identifier(WEEKDAYS, lambda x: "}{" + x + ",")
-    replace |= add_identifier(WEEKDAYS_SHORT, lambda x: "}{" + x + ",")
-    replace |= add_identifier(SCHEDULE, lambda x: "{" + x + "\\")
-    replace |= add_identifier(PRIORITIES, lambda x: "{" + x + "\\")
-    replace |= add_identifier(NOTES, lambda x: "{" + x + " $")
-    replace |= add_identifier(MORE, lambda x: "{" + x + "}")
-    replace |= add_identifier(REFLECT, lambda x: "{" + x + "}")
-    replace |= add_identifier(ALL_NOTES)
-    for english, spanish in replace.items():
-        text = text.replace(english, spanish)
-
-    with open("out/daily.tex", "w") as file:
-        file.write(font_edit)
-        file.write(text)
-
-def handle_daily_reflect() -> None:
-    with open("out/daily_reflect.tex", "r") as file:
-        text = file.read()
-
-    replace = add_identifier(MONTHS, lambda x: "}{" + x + "}")
-    replace |= add_identifier(WEEK, lambda x: "}{" + x)
-    replace |= add_identifier(WEEKDAYS, lambda x: "}{" + x + ",")
-    replace |= add_identifier(WEEKDAYS_SHORT, lambda x: "}{" + x + ",")
-    replace |= add_identifier(REFLECT, lambda x: "{" + x + "}")
-    replace |= add_identifier(PHRASES)
-    for english, spanish in replace.items():
-        text = text.replace(english, spanish)
-
-    with open("out/daily_reflect.tex", "w") as file:
-        file.write(font_edit)
-        file.write(text)
-
-def handle_daily_notes() -> None:
-    with open("out/daily_notes.tex", "r") as file:
-        text = file.read()
-
-    replace = add_identifier(MONTHS, lambda x: "}{" + x + "}")
-    replace |= add_identifier(WEEK, lambda x: "}{" + x)
-    replace |= add_identifier(WEEKDAYS, lambda x: "}{" + x + ",")
-    replace |= add_identifier(WEEKDAYS_SHORT, lambda x: "}{" + x + ",")
-    replace |= add_identifier(NOTES, lambda x: "{" + x + "}")
-    for english, spanish in replace.items():
-        text = text.replace(english, spanish)
-
-    with open("out/daily_notes.tex", "w") as file:
-        file.write(font_edit)
-        file.write(text)
-
-def handle_notes_indexed() -> None:
-    with open("out/notes_indexed.tex", "r") as file:
-        text = file.read()
-
-    replace = add_identifier(NOTES_INDEX, lambda x: "}{" + x)
-    replace |= add_identifier(NOTE, lambda x: "}{" + x)
-    for english, spanish in replace.items():
-        text = text.replace(english, spanish)
-
-    with open("out/notes_indexed.tex", "w") as file:
-        file.write(font_edit)
-        file.write(text)
-
-handle_all()
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write(translate_text(original))

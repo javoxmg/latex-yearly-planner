@@ -47,6 +47,7 @@ FILES = [
     "out/daily_reflect.tex",
     "out/daily_notes.tex",
     "out/notes_indexed.tex",
+    "out/attendance.tex",
 ]
 
 # Keys that contain characters other than letters/spaces/apostrophes (for

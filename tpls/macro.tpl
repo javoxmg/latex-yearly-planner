@@ -40,6 +40,8 @@
 \newlength{\myLenHeaderSideMonthsWidth}
 \newlength{\myLenDailyHourHeight}
 \newlength{\myLenScheduleGutter}
+\newlength{\myLenAttNameCol}
+\newlength{\myLenAttCol}
 
 {{- $lengths := .Cfg.Layout.Lengths -}}
 \setlength{\myLenTabColSep}{ {{- $lengths.TabColSep -}} }
@@ -59,6 +61,7 @@
 \setlength{\myLenHeaderSideMonthsWidth}{ {{- $lengths.HeaderSideMonthsWidth -}} }
 \setlength{\myLenDailyHourHeight}{ {{- $lengths.DailyHourHeight -}} }
 \setlength{\myLenScheduleGutter}{ {{- $lengths.ScheduleGutter -}} }
+\setlength{\myLenAttNameCol}{30mm}
 
 \newcommand{\myQuarterlySpring}{ {{- $lengths.QuarterlySpring -}} }
 \newcommand{\myMonthlySpring}{ {{- $lengths.MonthlySpring -}} }

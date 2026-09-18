@@ -64,6 +64,17 @@ else
     CALENDAR_CFG=""
 fi
 
+# Listas de alumnos por grupo (para las hojas de asistencia). Si no
+# existe, las hojas de asistencia salen con filas en blanco para
+# rellenar a mano.
+STUDENTS="cfg/teacher_students.yaml"
+if [ -f "$STUDENTS" ]; then
+    STUDENTS_CFG=",${STUDENTS}"
+else
+    echo -e "${YELLOW}Aviso: no existe $STUDENTS; las hojas de asistencia irán en blanco.${NC}"
+    STUDENTS_CFG=""
+fi
+
 # Cadena de configs ("el último gana"):
 #   base.yaml                      valores por defecto del proyecto
 #   rm2.base.yaml                  papel y márgenes de ReMarkable 2
@@ -72,6 +83,7 @@ fi
 #   teacher_base.yaml              curso académico (sept-agosto), líneas, lunes
 #   teacher_schedule.yaml          horario de clases y horas lectivas (8-15)
 #   teacher_calendar_AAAA-AA.yaml  calendario escolar del curso (festivos)
+#   teacher_students.yaml          listas de alumnos por grupo (asistencia)
 #
 # Si tu RM2 usa firmware DDVK, cambia cfg/rm2.base.yaml por
 # cfg/rm2_ddvk.base.yaml (o cfg/rm2_ddvk_lh.base.yaml para zurdos).
@@ -88,7 +100,7 @@ echo ""
 PLANNER_YEAR=$START_YEAR \
 PASSES=2 \
 TRANSLATION=spanish \
-CFG="cfg/base.yaml,cfg/rm2.base.yaml,cfg/template_months_on_side.yaml,cfg/rm2.mos.default.yaml,cfg/teacher_base.yaml,cfg/teacher_schedule.yaml${CALENDAR_CFG}" \
+CFG="cfg/base.yaml,cfg/rm2.base.yaml,cfg/template_months_on_side.yaml,cfg/rm2.mos.default.yaml,cfg/teacher_base.yaml,cfg/teacher_schedule.yaml${CALENDAR_CFG}${STUDENTS_CFG}" \
 NAME="teacher_planner_${SCHOOL_YEAR}" \
 ./single.sh
 
@@ -99,4 +111,5 @@ echo -e "Archivo generado: ${GREEN}teacher_planner_${SCHOOL_YEAR}.pdf${NC}"
 echo ""
 echo "Para cambiar el horario de clases: edita cfg/teacher_schedule.yaml"
 echo "Para cambiar festivos y vacaciones: edita ${CALENDAR}"
+echo "Para poner los nombres reales de los alumnos: edita ${STUDENTS}"
 echo ""

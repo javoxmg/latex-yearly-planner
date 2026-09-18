@@ -53,3 +53,9 @@ pages:
         tpls:
           - mos_08_notes_index.tpl
           - mos_09_notes.tpl
+
+  - name: attendance
+    renderblocks:
+      - funcname: attendance
+        tpls:
+          - mos_10_attendance.tpl

@@ -33,8 +33,9 @@
 {{- end}}
 {{- range $b := .Cfg.Schedule.ForDate .Day.Time $bottom $top .Day.IsHoliday}}
 {{- if eq $b.Kind "class"}}
+{{- $ref := $b.AttendanceRef $.Day.Time}}
   \filldraw[fill=\myColorClassFill, draw=\myColorGray] (\myLenScheduleGutter,{{printf "%.4f" $b.Top}}) rectangle (\myLenTriCol,{{printf "%.4f" $b.Bottom}});
-  \node[anchor=north west, inner sep=2pt, align=left, text width=\dimexpr\myLenTriCol-\myLenScheduleGutter-4pt\relax] at (\myLenScheduleGutter,{{printf "%.4f" $b.Top}}) {\small\textbf{ {{- $b.Name -}} }\\[-1pt]\scriptsize\textcolor{\myColorGray}{ {{- $b.Start}}--{{$b.End -}} }};
+  \node[anchor=north west, inner sep=2pt, align=left, text width=\dimexpr\myLenTriCol-\myLenScheduleGutter-4pt\relax] at (\myLenScheduleGutter,{{printf "%.4f" $b.Top}}) {\small\textbf{ {{- $b.Name -}} }\\[-1pt]\scriptsize\textcolor{\myColorGray}{ {{- $b.Start}}--{{$b.End -}} {{if $ref}}\ \ \hyperlink{ {{- $ref -}} }{Attendance}{{end -}} }};
 {{- else if eq $b.Kind "break"}}
   \filldraw[fill=\myColorBreakFill, draw=\myColorGray] (\myLenScheduleGutter,{{printf "%.4f" $b.Top}}) rectangle (\myLenTriCol,{{printf "%.4f" $b.Bottom}});
   \node[anchor=center, inner sep=0pt] at ({0.5*(\myLenScheduleGutter+\myLenTriCol)},{{printf "%.4f" $b.Mid}}) {\scriptsize\textcolor{\myColorGray}{\textbf{ {{- $b.Name -}} }\enspace {{$b.Start}}--{{$b.End}}}};

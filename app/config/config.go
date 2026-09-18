@@ -39,6 +39,10 @@ type Config struct {
 	// TitlePrefix is printed above the year on the title page, e.g.
 	// "Curso" to get "Curso 2026-2027". Empty for just the year.
 	TitlePrefix string
+
+	// Students holds the class rosters, one per teaching group (see
+	// cfg/teacher_students.yaml). Used by the attendance pages.
+	Students StudentGroups
 }
 
 type Debug struct {

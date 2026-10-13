@@ -64,14 +64,16 @@ else
     CALENDAR_CFG=""
 fi
 
-# Listas de alumnos por grupo (para las hojas de asistencia). Si no
-# existe, las hojas de asistencia salen con filas en blanco para
-# rellenar a mano.
+# Listas de alumnos por grupo (para las hojas de asistencia). Es un
+# archivo privado: está en .gitignore y no se sube a GitHub. Se crea
+# copiando cfg/teacher_students.example.yaml. Si no existe, las hojas de
+# asistencia salen con filas en blanco para rellenar a mano.
 STUDENTS="cfg/teacher_students.yaml"
 if [ -f "$STUDENTS" ]; then
     STUDENTS_CFG=",${STUDENTS}"
 else
     echo -e "${YELLOW}Aviso: no existe $STUDENTS; las hojas de asistencia irán en blanco.${NC}"
+    echo "       Para poner los nombres: cp cfg/teacher_students.example.yaml $STUDENTS"
     STUDENTS_CFG=""
 fi
 
@@ -83,7 +85,8 @@ fi
 #   teacher_base.yaml              curso académico (sept-agosto), líneas, lunes
 #   teacher_schedule.yaml          horario de clases y horas lectivas (8-15)
 #   teacher_calendar_AAAA-AA.yaml  calendario escolar del curso (festivos)
-#   teacher_students.yaml          listas de alumnos por grupo (asistencia)
+#   teacher_students.yaml          listas de alumnos por grupo (asistencia;
+#                                  privado, no se sube a GitHub)
 #
 # Si tu RM2 usa firmware DDVK, cambia cfg/rm2.base.yaml por
 # cfg/rm2_ddvk.base.yaml (o cfg/rm2_ddvk_lh.base.yaml para zurdos).

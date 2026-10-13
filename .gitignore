@@ -1,3 +1,7 @@
 *.pdf
 .vscode
 result
+
+# Listas de alumnos reales: datos personales, nunca al repositorio.
+# Se parte de cfg/teacher_students.example.yaml.
+cfg/teacher_students.yaml

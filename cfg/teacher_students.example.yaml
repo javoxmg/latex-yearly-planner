@@ -7,9 +7,18 @@
 # teacher_schedule.yaml: así se enlaza cada lista con las clases de ese
 # grupo (y con las fechas reales en que tiene clase).
 #
-# De momento son placeholders "Alumno N" mientras no tengas la lista
-# definitiva. Para poner los nombres reales, sustituye las entradas de
-# `students` (puedes dejar menos de 25, o más, la hoja se ajusta sola).
+# ESTE ARCHIVO ES SOLO UN EJEMPLO (con "Alumno N" en vez de nombres).
+# Para usarlo, cópialo como cfg/teacher_students.yaml y pon ahí los
+# nombres reales:
+#
+#     cp cfg/teacher_students.example.yaml cfg/teacher_students.yaml
+#
+# cfg/teacher_students.yaml está en .gitignore: nunca se sube a GitHub,
+# porque contiene datos personales de alumnos (menores). Si no existe,
+# las hojas de asistencia salen con filas en blanco para rellenar a mano.
+#
+# Puedes dejar menos de 25 alumnos por grupo, o más: la hoja se ajusta
+# sola.
 # Los grupos combinados (por ejemplo 03A y 03D en la misma clase) llevan
 # una única lista, sin distinguir de qué clase oficial es cada alumno.
 

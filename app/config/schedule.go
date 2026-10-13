@@ -32,6 +32,13 @@ type Schedule struct {
 	// slots and the breaks, in any order.
 	Periods []Period
 	Classes []Class
+	// Palette gives each subject its own fill color on the daily
+	// schedule. Entries are either 6-digit HTML hex codes ("FFECC4" or
+	// "#FFECC4") or any xcolor expression ("gray!15"). Subjects (see
+	// Class.SubjectKey) take the colors in the order they first appear in
+	// Classes, wrapping around if there are more subjects than colors.
+	// When empty, every class uses Layout.Colors.ClassFill.
+	Palette []string
 }
 
 // Period is one slot of the daily frame.
@@ -65,6 +72,108 @@ type Class struct {
 	// May while the rest of the school runs until June.
 	From  string
 	Until string
+	// Subject groups classes that share a fill color. Optional: when
+	// empty it is taken from Group, up to the first " - " (so
+	// "Matemáticas II - 2BCB" is subject "Matemáticas II"), or from Name
+	// when there is no Group either.
+	Subject string
+}
+
+// SubjectKey is the subject this class is colored by (see Class.Subject).
+func (c Class) SubjectKey() string {
+	if s := strings.TrimSpace(c.Subject); s != "" {
+		return s
+	}
+
+	if c.Group != "" {
+		if i := strings.Index(c.Group, " - "); i >= 0 {
+			return strings.TrimSpace(c.Group[:i])
+		}
+
+		return strings.TrimSpace(c.Group)
+	}
+
+	return strings.TrimSpace(c.Name)
+}
+
+// subjectColorName is the LaTeX color name used to fill the blocks of
+// class c, or "" when no palette is configured (the template then falls
+// back to \myColorClassFill). The names are defined by PaletteDefs.
+func (s Schedule) subjectColorName(c Class) string {
+	if len(s.Palette) == 0 {
+		return ""
+	}
+
+	key := c.SubjectKey()
+	seen := map[string]int{}
+
+	for _, other := range s.Classes {
+		k := other.SubjectKey()
+		if _, ok := seen[k]; !ok {
+			seen[k] = len(seen)
+		}
+
+		if k == key {
+			break
+		}
+	}
+
+	i, ok := seen[key]
+	if !ok {
+		i = len(seen)
+	}
+
+	return fmt.Sprintf("mySubjectColor%s", paletteSuffix(i%len(s.Palette)))
+}
+
+// PaletteDefs returns one LaTeX line per palette entry that defines the
+// color names used by subjectColorName: \definecolor for HTML hex codes,
+// \colorlet for anything else (an xcolor expression).
+func (s Schedule) PaletteDefs() []string {
+	defs := make([]string, 0, len(s.Palette))
+
+	for i, c := range s.Palette {
+		name := "mySubjectColor" + paletteSuffix(i)
+		hex := strings.TrimPrefix(strings.TrimSpace(c), "#")
+
+		if isHex6(hex) {
+			defs = append(defs, fmt.Sprintf(`\definecolor{%s}{HTML}{%s}`, name, strings.ToUpper(hex)))
+		} else {
+			defs = append(defs, fmt.Sprintf(`\colorlet{%s}{%s}`, name, strings.TrimSpace(c)))
+		}
+	}
+
+	return defs
+}
+
+// paletteSuffix turns 0, 1, 2... into "A", "B", "C"... ("AA", "AB"...
+// past 26): LaTeX color names may contain digits, but letters keep them
+// safe inside any macro name too.
+func paletteSuffix(i int) string {
+	out := ""
+
+	for {
+		out = string(rune('A'+i%26)) + out
+		i = i/26 - 1
+
+		if i < 0 {
+			return out
+		}
+	}
+}
+
+func isHex6(s string) bool {
+	if len(s) != 6 {
+		return false
+	}
+
+	for _, r := range s {
+		if !strings.ContainsRune("0123456789abcdefABCDEF", r) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // Block kinds, as seen by the template.
@@ -80,11 +189,14 @@ const (
 // Bottom 1.333). They are consumed by the TikZ template, which uses the
 // hour height as its y unit.
 type ScheduleBlock struct {
-	Kind   string
-	Name   string
-	Group  string
-	Start  string
-	End    string
+	Kind  string
+	Name  string
+	Group string
+	Start string
+	End   string
+	// Color is the LaTeX color name to fill a class block with (see
+	// Schedule.Palette); empty means the default \myColorClassFill.
+	Color  string
 	Top    float64
 	Bottom float64
 }
@@ -110,7 +222,7 @@ func (s Schedule) ForDate(t time.Time, bottomHour, topHour int, holiday bool) ([
 	gridTop := float64(topHour + 1 - bottomHour)
 	blocks := make([]ScheduleBlock, 0, len(s.Periods)+len(s.Classes))
 
-	add := func(kind, name, group, start, end string) error {
+	add := func(kind, name, group, color, start, end string) error {
 		from, err := parseHHMM(start)
 		if err != nil {
 			return fmt.Errorf("%s %q start: %w", kind, name, err)
@@ -140,7 +252,7 @@ func (s Schedule) ForDate(t time.Time, bottomHour, topHour int, holiday bool) ([
 			bottom = gridTop
 		}
 
-		blocks = append(blocks, ScheduleBlock{Kind: kind, Name: name, Group: group, Start: start, End: end, Top: top, Bottom: bottom})
+		blocks = append(blocks, ScheduleBlock{Kind: kind, Name: name, Group: group, Color: color, Start: start, End: end, Top: top, Bottom: bottom})
 
 		return nil
 	}
@@ -163,7 +275,7 @@ func (s Schedule) ForDate(t time.Time, bottomHour, topHour int, holiday bool) ([
 
 		active = append(active, c)
 
-		if err := add(BlockClass, c.Name, c.Group, c.Start, c.End); err != nil {
+		if err := add(BlockClass, c.Name, c.Group, s.subjectColorName(c), c.Start, c.End); err != nil {
 			return nil, err
 		}
 	}
@@ -179,7 +291,7 @@ func (s Schedule) ForDate(t time.Time, bottomHour, topHour int, holiday bool) ([
 				continue
 			}
 
-			if err := add(kind, p.Name, "", p.Start, p.End); err != nil {
+			if err := add(kind, p.Name, "", "", p.Start, p.End); err != nil {
 				return nil, err
 			}
 		}

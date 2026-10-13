@@ -27,8 +27,8 @@ layout:
     schedulegutter: 6mm    # hueco a la izquierda para el número de la hora
 
   colors:
-    classfill: gray!15     # relleno de los bloques de clase
-    breakfill: gray!40     # relleno del bloque de recreo
+    classfill: gray!15     # relleno de los bloques de clase si no hay `schedule.palette`
+    breakfill: gray!66     # relleno del bloque de recreo (gris 171, más oscuro que cualquier clase)
 
 schedule:
   enabled: true
@@ -49,6 +49,35 @@ schedule:
     - { start: "11:35", end: "12:25" }
     - { start: "12:30", end: "13:20" }
     - { start: "13:25", end: "14:15" }
+
+  # Colores por materia. Cada materia distinta toma un color de esta
+  # lista, en el orden en que aparece por primera vez en `classes` (aquí:
+  # CdM, Mat II, MACS I, Mat). Si hay más materias que colores, se vuelve
+  # a empezar por el primero.
+  #
+  # La materia de cada clase es la parte de `group` antes de " - "
+  # ("Matemáticas II - 2BCB" -> "Matemáticas II"); se puede forzar con un
+  # campo `subject:` en la clase. Para cambiar el color de una materia
+  # basta con cambiar el código de su posición en la lista.
+  #
+  # Son colores suaves que, además del tono, tienen luminosidades
+  # distintas para seguir distinguiéndose en la ReMarkable 2, que los
+  # muestra en gris. La RM2 tiene 16 niveles de gris; los cuatro primeros
+  # colores caen en cuatro niveles seguidos (el que se indica entre
+  # paréntesis, de 0 negro a 255 blanco) y el recreo (breakfill, gris
+  # 171) queda en el siguiente, más oscuro que todas las clases. Los dos
+  # últimos están a medio camino: en el móvil se distinguen por el tono,
+  # pero en la RM2 se parecerán al de al lado.
+  #
+  # Se admite un código HTML de 6 cifras o cualquier color de xcolor
+  # ("gray!15"). Quitando la lista se vuelve al gris único de classfill.
+  palette:
+    - "FFECCC"   # 1 arena     (gris 238)
+    - "C2E5FB"   # 2 azul      (gris 221)
+    - "BED7BA"   # 3 verde     (gris 204)
+    - "DBADB0"   # 4 rosa      (gris 187)
+    - "E6E0FB"   # 5 lila      (gris 229)
+    - "B3E2E1"   # 6 turquesa  (gris 212)
 
   # `until` (opcional): último día de clase de ese grupo, si es distinto
   # del fin de curso general (schedule.to en teacher_calendar_*.yaml).

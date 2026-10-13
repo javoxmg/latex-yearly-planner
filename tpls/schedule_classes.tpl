@@ -8,9 +8,11 @@
   boxes never cover them.
 
   Three kinds of box (see config.Schedule.ForWeekday):
-    class  shaded, group name in bold + time
+    class  filled with its subject's palette color (schedule.palette)
+           or \myColorClassFill, group name in bold + time in dark gray
+           (darker than \myColorGray so it stays legible on every fill)
     free   outlined only (a period without a lesson), time in gray
-    break  shaded darker, name centred (e.g. RECREO)
+    break  shaded darker than any class, name centred in black (e.g. RECREO)
 */ -}}
 {{- $bottom := .Cfg.Layout.Numbers.DailyBottomHour -}}
 {{- $top := .Cfg.Layout.Numbers.DailyTopHour -}}
@@ -34,11 +36,11 @@
 {{- range $b := .Cfg.Schedule.ForDate .Day.Time $bottom $top .Day.IsHoliday}}
 {{- if eq $b.Kind "class"}}
 {{- $ref := $b.AttendanceRef $.Day.Time}}
-  \filldraw[fill=\myColorClassFill, draw=\myColorGray] (\myLenScheduleGutter,{{printf "%.4f" $b.Top}}) rectangle (\myLenTriCol,{{printf "%.4f" $b.Bottom}});
-  \node[anchor=north west, inner sep=2pt, align=left, text width=\dimexpr\myLenTriCol-\myLenScheduleGutter-4pt\relax] at (\myLenScheduleGutter,{{printf "%.4f" $b.Top}}) {\small\textbf{ {{- $b.Name -}} }\\[-1pt]\scriptsize\textcolor{\myColorGray}{ {{- $b.Start}}--{{$b.End -}} {{if $ref}}\ \ \hyperlink{ {{- $ref -}} }{Attendance}{{end -}} }};
+  \filldraw[fill={{if $b.Color}}{{$b.Color}}{{else}}\myColorClassFill{{end}}, draw=\myColorGray] (\myLenScheduleGutter,{{printf "%.4f" $b.Top}}) rectangle (\myLenTriCol,{{printf "%.4f" $b.Bottom}});
+  \node[anchor=north west, inner sep=2pt, align=left, text width=\dimexpr\myLenTriCol-\myLenScheduleGutter-4pt\relax] at (\myLenScheduleGutter,{{printf "%.4f" $b.Top}}) {\small\textbf{ {{- $b.Name -}} }\\[-1pt]\scriptsize\textcolor{black!70}{ {{- $b.Start}}--{{$b.End -}} {{if $ref}}\ \ \hyperlink{ {{- $ref -}} }{Attendance}{{end -}} }};
 {{- else if eq $b.Kind "break"}}
   \filldraw[fill=\myColorBreakFill, draw=\myColorGray] (\myLenScheduleGutter,{{printf "%.4f" $b.Top}}) rectangle (\myLenTriCol,{{printf "%.4f" $b.Bottom}});
-  \node[anchor=center, inner sep=0pt] at ({0.5*(\myLenScheduleGutter+\myLenTriCol)},{{printf "%.4f" $b.Mid}}) {\scriptsize\textcolor{\myColorGray}{\textbf{ {{- $b.Name -}} }\enspace {{$b.Start}}--{{$b.End}}}};
+  \node[anchor=center, inner sep=0pt] at ({0.5*(\myLenScheduleGutter+\myLenTriCol)},{{printf "%.4f" $b.Mid}}) {\scriptsize\textbf{ {{- $b.Name -}} }\enspace {{$b.Start}}--{{$b.End}}};
 {{- else}}
   \filldraw[fill=white, draw=\myColorGray] (\myLenScheduleGutter,{{printf "%.4f" $b.Top}}) rectangle (\myLenTriCol,{{printf "%.4f" $b.Bottom}});
   \node[anchor=north west, inner sep=2pt] at (\myLenScheduleGutter,{{printf "%.4f" $b.Top}}) {\scriptsize\textcolor{\myColorGray}{ {{- if $b.Name}}\textbf{ {{- $b.Name -}} }\enspace{{end -}} {{$b.Start}}--{{$b.End -}} }};

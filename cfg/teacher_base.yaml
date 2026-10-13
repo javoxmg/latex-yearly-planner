@@ -20,3 +20,13 @@ addlasthalfhour: false
 # Julio y agosto quedan igualmente generados (vacaciones), sin más coste.
 startmonth: 9
 nummonths: 12
+
+# Días no lectivos (festivos, vacaciones y cualquier otra entrada con
+# `kind: holiday` del calendario escolar): rojo suave en las celdas de
+# los calendarios y en el recuadro con el nombre del día en la página
+# diaria. red!18 es un 18 % de rojo sobre blanco (#FFD1D1); en escala de
+# grises (ReMarkable 2) da el mismo gris claro que antes (gray!25), así
+# que en la tableta no cambia nada. Para volver al gris: gray!25.
+layout:
+  colors:
+    holidayfill: red!18
